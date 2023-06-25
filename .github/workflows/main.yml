@@ -1,13 +1,13 @@
-name: "Terraform action"
+name: "Terraform Action"
 on:
   push:
     branches:
       - main
   pull_request:
 permissions:
-      id-token: write # This is required for aws oidc connection
-      contents: read # This is required for actions/checkout
-      pull-requests: write # This is required for gh bot to comment PR
+  id-token: write # This is required for AWS OIDC connection
+  contents: read # This is required for actions/checkout
+  pull-requests: write # This is required for the GitHub bot to comment on PRs
 env:
   TF_LOG: INFO
 jobs:
@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        region: ["us-east-1", "ap-south-1", "ap-northeast-1"]
+        region: ["us-east-1", "ap-south-1"]
 
     steps:
       - name: Checkout code
@@ -45,9 +45,12 @@ jobs:
       - name: Initialize Terraform backend
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.S3_BACKEND_BUCKET_${{ matrix.region | replace('-', '_') | upper }} }}" \
+            -backend-config="bucket=$S3_BACKEND_BUCKET_${{ matrix.region }}" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ matrix.region }}"
+        env:
+          S3_BACKEND_BUCKET_US_EAST_1: ${{ secrets.S3_BACKEND_BUCKET_US_EAST_1 }}
+          S3_BACKEND_BUCKET_AP_SOUTH_1: ${{ secrets.S3_BACKEND_BUCKET_AP_SOUTH_1 }}
 
       - name: Terraform validate
         id: validate
