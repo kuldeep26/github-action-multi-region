@@ -50,7 +50,7 @@ jobs:
       - name: Initialize Terraform backend
         run: |
           terraform init \
-            -backend-config="bucket=$S3_BACKEND_BUCKET_${{ matrix.region }}" \
+            -backend-config="bucket=$S3_BACKEND_BUCKET_${{ matrix.region | replace('-', '_') | upper }} }}" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ matrix.region }}"
         env:
