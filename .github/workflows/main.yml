@@ -45,9 +45,9 @@ jobs:
 
       - name: Initialize Terraform backend
         run: |
-          export S3_BACKEND_BUCKET="${{ secrets.S3_BACKEND_BUCKET_${{ steps.region_input.outputs.region }} }}"
+          export S3_BACKEND_BUCKET="S3_BACKEND_BUCKET_${{ steps.region_input.outputs.region }}"
           terraform init \
-            -backend-config="bucket=$S3_BACKEND_BUCKET" \
+            -backend-config="bucket=${{ secrets[$S3_BACKEND_BUCKET] }}" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ steps.region_input.outputs.region }}"
 
