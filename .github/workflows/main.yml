@@ -18,11 +18,13 @@ jobs:
         shell: bash
         working-directory: .
 
-    strategy:
-      matrix:
-        region: ["us-east-1", "ap-south-1"]
-
     steps:
+
+      - name: Select deployment region
+        id: region
+        run: |
+          echo "::set-output name=region::$(echo -e 'us-east-1\nap-south-1' | fzf)"
+          
       - name: Checkout code
         uses: actions/checkout@v3
 
