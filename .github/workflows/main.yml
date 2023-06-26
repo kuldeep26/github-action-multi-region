@@ -19,25 +19,19 @@ jobs:
         working-directory: .
 
     steps:
-
       - name: Select deployment region
-        id: region
+        id: region_input
         run: |
           echo "::set-output name=region::$(echo -e 'us-east-1\nap-south-1' | fzf)"
-          
+
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Enter Region
-        id: region
-        run: |
-          echo "::set-output name=region::$(read -p 'Enter the region: ' region && echo $region)"
 
       - name: Configure AWS credentials from AWS account
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: ${{ secrets.AWS_ROLE }}
-          aws-region: ${{ matrix.region }}
+          aws-region: ${{ steps.region_input.outputs.region }}
       
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
@@ -51,20 +45,11 @@ jobs:
 
       - name: Initialize Terraform backend
         run: |
-          if [[ "${{ matrix.region }}" == "us-east-1" ]]; then
-            export S3_BACKEND_BUCKET="${{ secrets.S3_BACKEND_BUCKET_US_EAST_1 }}"
-          elif [[ "${{ matrix.region }}" == "ap-south-1" ]]; then
-            export S3_BACKEND_BUCKET="${{ secrets.S3_BACKEND_BUCKET_AP_SOUTH_1 }}"
-          else
-            echo "Invalid region specified"
-            exit 1
-          fi
-          
+          export S3_BACKEND_BUCKET="${{ secrets.S3_BACKEND_BUCKET_${{ steps.region_input.outputs.region }} }}"
           terraform init \
             -backend-config="bucket=$S3_BACKEND_BUCKET" \
             -backend-config="key=terraform.tfstate" \
-            -backend-config="region=${{ matrix.region }}"
-
+            -backend-config="region=${{ steps.region_input.outputs.region }}"
 
       - name: Terraform validate
         id: validate
