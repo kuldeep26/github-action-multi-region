@@ -45,11 +45,13 @@ jobs:
 
       - name: Initialize Terraform backend
         run: |
+          backend_bucket="S3_BACKEND_BUCKET_${{ steps.region_input.outputs.region }}"
+          bucket_value="${{ secrets[backend_bucket] }}"
           terraform init \
-            -backend-config="bucket=${{ secrets['S3_BACKEND_BUCKET_' + steps.region_input.outputs.region] }}" \
+            -backend-config="bucket=${bucket_value}" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ steps.region_input.outputs.region }}"
-
+            
       - name: Terraform validate
         id: validate
         run: terraform validate -no-color
