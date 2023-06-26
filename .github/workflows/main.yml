@@ -51,7 +51,10 @@ jobs:
             -backend-config="bucket=${bucket_value}" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ steps.region_input.outputs.region }}"
-            
+        env:
+          S3_BACKEND_BUCKET_US_EAST_1: ${{ secrets.S3_BACKEND_BUCKET_US_EAST_1 }}
+          S3_BACKEND_BUCKET_AP_SOUTH_1: ${{ secrets.S3_BACKEND_BUCKET_AP_SOUTH_1 }}
+
       - name: Terraform validate
         id: validate
         run: terraform validate -no-color
