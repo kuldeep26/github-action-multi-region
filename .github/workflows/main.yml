@@ -49,13 +49,20 @@ jobs:
 
       - name: Initialize Terraform backend
         run: |
+          if [[ "${{ matrix.region }}" == "us-east-1" ]]; then
+            export S3_BACKEND_BUCKET="${{ secrets.S3_BACKEND_BUCKET_US_EAST_1 }}"
+          elif [[ "${{ matrix.region }}" == "ap-south-1" ]]; then
+            export S3_BACKEND_BUCKET="${{ secrets.S3_BACKEND_BUCKET_AP_SOUTH_1 }}"
+          else
+            echo "Invalid region specified"
+            exit 1
+          fi
+          
           terraform init \
-            -backend-config="bucket=$S3_BACKEND_BUCKET_${{ matrix.region}}" \
+            -backend-config="bucket=$S3_BACKEND_BUCKET" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ matrix.region }}"
-        env:
-          S3_BACKEND_BUCKET_US_EAST_1: ${{ secrets.S3_BACKEND_BUCKET_US_EAST_1 }}
-          S3_BACKEND_BUCKET_AP_SOUTH_1: ${{ secrets.S3_BACKEND_BUCKET_AP_SOUTH_1 }}
+
 
       - name: Terraform validate
         id: validate
