@@ -3,20 +3,10 @@ name: Deployment Pipeline
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        type: choice
-        description: Select the environment
-        options:
-        - Dev
-        - Stag
-        - Prod
-      choice:
-        type: choice
-        description: Select Region
-        options:
-        - US
-        - EU
-        - AP
+      branch:
+        type: string
+        description: Select the branch
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +14,28 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: greet
-        run: | 
-          echo "environment is ${{ github.event.inputs.environment }}" / ${{ inputs.environment }}
-          echo "choice is ${{ github.event.inputs.choice }}" / ${{ inputs.choice }}
+      - name: Map branch to environment
+        id: map-branch
+        run: |
+          case ${{ github.event.inputs.branch }} in
+            main)
+              environment="Dev"
+              ;;
+            staging)
+              environment="Stag"
+              ;;
+            production)
+              environment="Prod"
+              ;;
+            *)
+              echo "::error::Invalid branch selected"
+              exit 1
+              ;;
+          esac
+          echo "::set-output name=environment::$environment"
+
+      - name: Use environment name
+        run: |
+          environment_name=${{ steps.map-branch.outputs.environment }}
+          echo "Environment: $environment_name"
+          # Use the environment name in further steps
