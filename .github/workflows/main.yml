@@ -6,11 +6,11 @@ on:
       branch:
         description: 'Select the branch'
         required: true
-        default: 'main'
+        default: ${{ github.ref }}
         options:
-          - 'main'
-          - 'staging'
-          - 'production'
+          - 'refs/heads/main'
+          - 'refs/heads/staging'
+          - 'refs/heads/production'
 
 jobs:
   build:
@@ -23,13 +23,13 @@ jobs:
         id: map-branch
         run: |
           case ${{ github.event.inputs.branch }} in
-            main)
+            refs/heads/main)
               environment="Dev"
               ;;
-            staging)
+            refs/heads/staging)
               environment="Stag"
               ;;
-            production)
+            refs/heads/production)
               environment="Prod"
               ;;
             *)
