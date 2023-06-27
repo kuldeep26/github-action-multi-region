@@ -1,11 +1,11 @@
 name: Deployment Pipeline
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        type: string
-        description: Select the branch
+  push:
+    branches:
+      - main
+      - staging
+      - production
 
 jobs:
   build:
@@ -17,14 +17,14 @@ jobs:
       - name: Map branch to environment
         id: map-branch
         run: |
-          case ${{ github.event.inputs.branch }} in
-            main)
+          case ${{ github.ref }} in
+            refs/heads/main)
               environment="Dev"
               ;;
-            staging)
+            refs/heads/staging)
               environment="Stag"
               ;;
-            production)
+            refs/heads/production)
               environment="Prod"
               ;;
             *)
@@ -33,6 +33,7 @@ jobs:
               ;;
           esac
           echo "::set-output name=environment::$environment"
+          echo "Environment: $environment" >> $GITHUB_ENV
 
       - name: Use environment name
         run: |
