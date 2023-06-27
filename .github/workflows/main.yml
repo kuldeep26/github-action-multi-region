@@ -6,11 +6,7 @@ on:
       branch:
         description: 'Select the branch'
         required: true
-        default: ${{ github.event.inputs.branch }}
-        options:
-          - 'main'
-          - 'staging'
-          - 'production'
+        default: ${{ github.head_ref }}
 
 jobs:
   build:
