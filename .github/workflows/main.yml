@@ -6,7 +6,7 @@ on:
       branch:
         description: 'Select the branch'
         required: true
-        default: ${{ github.ref }}
+        default: ${{ github.event.ref }}
         options:
           - 'refs/heads/main'
           - 'refs/heads/staging'
