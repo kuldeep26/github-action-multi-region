@@ -1,112 +1,31 @@
-name: "Terraform Action"
+name: CI
+
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-permissions:
-  id-token: write # This is required for AWS OIDC connection
-  contents: read # This is required for actions/checkout
-  pull-requests: write # This is required for the GitHub bot to comment on PRs
-env:
-  TF_LOG: INFO
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Select the environment
+        options:
+        - Dev
+        - Stag
+        - Prod
+      choice:
+        type: choice
+        description: Select Region
+        options:
+        - US
+        - EU
+        - AP
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: .
 
     steps:
-      - name: Select deployment region
-        id: region_input
-        run: |
-          echo "::set-output name=region::$(echo -e 'us-east-1\nap-south-1' | fzf)"
+      - uses: actions/checkout@v2
 
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials from AWS account
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE }}
-          aws-region: ${{ steps.region_input.outputs.region }}
-      
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.0.3
-
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
-
-      - name: Initialize Terraform backend
-        run: |
-          backend_bucket="S3_BACKEND_BUCKET_${{ steps.region_input.outputs.region }}"
-          bucket_value="${{ secrets[backend_bucket] }}"
-          terraform init \
-            -backend-config="bucket=${bucket_value}" \
-            -backend-config="key=terraform.tfstate" \
-            -backend-config="region=${{ steps.region_input.outputs.region }}"
-        env:
-          S3_BACKEND_BUCKET_US_EAST_1: ${{ secrets.S3_BACKEND_BUCKET_US_EAST_1 }}
-          S3_BACKEND_BUCKET_AP_SOUTH_1: ${{ secrets.S3_BACKEND_BUCKET_AP_SOUTH_1 }}
-
-      - name: Terraform validate
-        id: validate
-        run: terraform validate -no-color
-
-      - name: Terraform plan
-        run: |
-          terraform plan -var-file=variables-${{ matrix.region }}.tfvars
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-
-      - uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            <details><summary>Validation Output</summary>
-
-            \`\`\`\n
-            ${{ steps.validate.outputs.stdout }}
-            \`\`\`
-
-            </details>
-
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
-      - name: Deploy infrastructure
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          terraform apply -var-file=variables-${{ matrix.region }}.tfvars -auto-approve
+      - name: greet
+        run: | 
+          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
+          echo "boolean is ${{ github.event.inputs.boolean }}" / ${{ inputs.boolean }} 
+          echo "choice is ${{ github.event.inputs.choice }}" / ${{ inputs.choice }}
