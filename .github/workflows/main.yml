@@ -1,4 +1,4 @@
-name: CI
+name: Deployment Pipeline
 
 on:
   workflow_dispatch:
@@ -26,5 +26,5 @@ jobs:
 
       - name: greet
         run: | 
-          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
+          echo "environment is ${{ github.event.inputs.choice }} / ${{ inputs.choice }}"
           echo "choice is ${{ github.event.inputs.choice }}" / ${{ inputs.choice }}
