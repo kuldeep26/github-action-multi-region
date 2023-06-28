@@ -1,43 +1,22 @@
-name: Deployment Pipeline
+name: deploy-to-env
+run-name: Manual Deployment (${{ github.ref_name }}, ${{ inputs.aws_region }})
 
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Select the branch'
-        required: true
-        default: ${{ github.head_ref }}
+      aws_region:
+        type: choice
+        description: AWS region to deploy
+        options:
+          - "eu-west-1"
+          - "us-east-1"
+          - "ap-northeast-1"
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+permissions:
+  id-token: write
+  contents: read
+  issues: write
 
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Map branch to environment
-        id: map-branch
-        run: |
-          case ${{ github.event.inputs.branch }} in
-            main)
-              environment="Dev"
-              ;;
-            staging)
-              environment="Stag"
-              ;;
-            production)
-              environment="Prod"
-              ;;
-            *)
-              echo "::error::Invalid branch selected"
-              exit 1
-              ;;
-          esac
-          echo "::set-output name=environment::$environment"
-          echo "Environment=${environment}" >> $GITHUB_ENV
-
-      - name: Use environment name
-        run: |
-          environment_name=${{ steps.map-branch.outputs.environment }}
-          echo "Environment: $environment_name"
-          # Use the environment name in further steps
+concurrency:
+  group: deploy-${{ github.ref_name }}-${{ inputs.aws_region }}
+  cancel-in-progress: false
