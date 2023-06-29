@@ -1,4 +1,4 @@
-name: Terraform Plan
+name: Terraform Deployment
 on:
   workflow_dispatch:
     inputs:
@@ -6,48 +6,43 @@ on:
         description: 'Select the region'
         required: true
         default: 'us-east-1'
+        options:
+          - 'us-east-1'
+          - 'eu-west-1'
+          - 'ap-south-1'
 
 jobs:
-  terraform-plan:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Determine branch name
-        id: branch-name
-        run: echo "::set-output name=branch::$(echo $GITHUB_REF | sed 's/refs\/heads\///')"
-
-      - name: Determine account ID
-        id: account-id
+      - name: Set Terraform Variables
+        id: set-variables
         run: |
-          branch_name=${{ steps.branch-name.outputs.branch }}
-          if [ "$branch_name" == "main" ]; then
+          branch_name=$(basename ${{ github.ref }})
+          if [[ $branch_name == "main" ]]; then
             environment="dev"
             account_id="1234"
-          elif [ "$branch_name" == "staging" ]; then
+          elif [[ $branch_name == "staging" ]]; then
+            environment="staging"
             account_id="5678"
-          elif [ "$branch_name" == "production" ]; then
+          elif [[ $branch_name == "production" ]]; then
+            environment="production"
             account_id="9012"
           else
-            echo "::error::Invalid branch selected"
+            echo "::error::Incorrect branch selected: $branch_name"
             exit 1
           fi
-          echo "::set-output name=account_id::$account_id"
-
-      - name: Determine tfvar file
-        id: tfvar-file
-        run: |
-          branch_name=${{ steps.branch-name.outputs.branch }}
-          account_id=${{ steps.account-id.outputs.account_id }}
-          region=${{ github.event.inputs.region }}
-          tfvar_file="${branch_name}-${region}.tfvar"
+          if [[ $environment == "Dev" ]]; then
+            tfvar_file="dev-${{ github.event.inputs.region }}.tfvars"
+          else
+            tfvar_file="${environment}-${{ github.event.inputs.region }}.tfvars"
+          fi
           echo "::set-output name=tfvar_file::$tfvar_file"
           echo "::set-output name=account_id::$account_id"
-          cat $tfvar_file
 
       - name: Show Terraform Variables
         run: |
