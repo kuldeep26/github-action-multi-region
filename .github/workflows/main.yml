@@ -30,7 +30,7 @@ jobs:
         run: |
           branch_name=${{ steps.branch-name.outputs.branch }}
           region=${{ github.event.inputs.region }}
-          tfvar_file="${branch_name}-${region}.tfvar"
+          tfvar_file="${branch_name}-${region}.tfvars"
           echo "::set-output name=tfvar_file::$tfvar_file"
           cat $tfvar_file
 
