@@ -6,10 +6,6 @@ on:
         description: 'Select the region'
         required: true
         default: 'us-east-1'
-        options:
-          - "eu-west-1"
-          - "us-east-1"
-          - "ap-northeast-1"
 
 jobs:
   terraform-plan:
@@ -29,8 +25,11 @@ jobs:
         id: tfvar-file
         run: |
           branch_name=${{ steps.branch-name.outputs.branch }}
+          if [ "$branch_name" == "main" ]; then
+            branch_name="Dev"
+          fi
           region=${{ github.event.inputs.region }}
-          tfvar_file="${branch_name}-${region}.tfvars"
+          tfvar_file="${branch_name}-${region}.tfvar"
           echo "::set-output name=tfvar_file::$tfvar_file"
           cat $tfvar_file
 
