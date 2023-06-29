@@ -43,9 +43,9 @@ jobs:
           fi
           echo "::set-output name=tfvar_file::$tfvar_file"
           echo "::set-output name=account_id::$account_id"
+          echo "tfvar_file: $tfvar_file"
 
       - name: Show Terraform Variables
         run: |
           echo "TFVar File: ${{ steps.set-variables.outputs.tfvar_file }}"
           echo "Account ID: ${{ steps.set-variables.outputs.account_id }}"
-          cat $tfvar_file"
