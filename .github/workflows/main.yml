@@ -26,7 +26,7 @@ jobs:
         run: |
           branch_name=${{ steps.branch-name.outputs.branch }}
           if [ "$branch_name" == "main" ]; then
-            branch_name="Dev"
+            branch_name="dev"
           fi
           region=${{ github.event.inputs.region }}
           tfvar_file="${branch_name}-${region}.tfvar"
