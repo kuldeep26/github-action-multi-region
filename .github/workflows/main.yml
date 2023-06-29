@@ -48,4 +48,4 @@ jobs:
         run: |
           echo "TFVar File: ${{ steps.set-variables.outputs.tfvar_file }}"
           echo "Account ID: ${{ steps.set-variables.outputs.account_id }}"
-          echo "tfvar_file: $tfvar_file"
+          cat $tfvar_file"
