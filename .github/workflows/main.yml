@@ -1,41 +1,40 @@
-name: Deployment Pipeline
-
+name: Terraform Plan
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        type: string
-        description: Select the branch
+      region:
+        description: 'Select the region'
+        required: true
+        default: 'us-east-1'
 
 jobs:
-  build:
+  terraform-plan:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Map branch to environment
-        id: map-branch
-        run: |
-          case ${{ github.event.inputs.branch }} in
-            main)
-              environment="Dev"
-              ;;
-            staging)
-              environment="Stag"
-              ;;
-            production)
-              environment="Prod"
-              ;;
-            *)
-              echo "::error::Invalid branch selected"
-              exit 1
-              ;;
-          esac
-          echo "::set-output name=environment::$environment"
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
 
-      - name: Use environment name
+      - name: Determine branch name
+        id: branch-name
+        run: echo "::set-output name=branch::$(echo $GITHUB_REF | sed 's/refs\/heads\///')"
+
+      - name: Determine tfvar file
+        id: tfvar-file
         run: |
-          environment_name=${{ steps.map-branch.outputs.environment }}
-          echo "Environment: $environment_name"
-          # Use the environment name in further steps
+          branch_name=${{ steps.branch-name.outputs.branch }}
+          if [ "$branch_name" == "main" ]; then
+            branch_name="dev"
+          fi
+          region=${{ github.event.inputs.region }}
+          tfvar_file="${branch_name}-${region}.tfvars"
+          echo "::set-output name=tfvar_file::$tfvar_file"
+          cat $tfvar_file
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform plan
+        run: terraform plan -var-file=${{ steps.tfvar-file.outputs.tfvar_file }}
