@@ -21,20 +21,35 @@ jobs:
         id: branch-name
         run: echo "::set-output name=branch::$(echo $GITHUB_REF | sed 's/refs\/heads\///')"
 
+      - name: Determine account ID
+        id: account-id
+        run: |
+          branch_name=${{ steps.branch-name.outputs.branch }}
+          if [ "$branch_name" == "main" ]; then
+            environment="dev"
+            account_id="1234"
+          elif [ "$branch_name" == "staging" ]; then
+            account_id="5678"
+          elif [ "$branch_name" == "production" ]; then
+            account_id="9012"
+          else
+            echo "::error::Invalid branch selected"
+            exit 1
+          fi
+          echo "::set-output name=account_id::$account_id"
+
       - name: Determine tfvar file
         id: tfvar-file
         run: |
           branch_name=${{ steps.branch-name.outputs.branch }}
-          if [ "$branch_name" == "main" ]; then
-            branch_name="dev"
-          fi
+          account_id=${{ steps.account-id.outputs.account_id }}
           region=${{ github.event.inputs.region }}
-          tfvar_file="${branch_name}-${region}.tfvars"
+          tfvar_file="${branch_name}-${region}.tfvar"
           echo "::set-output name=tfvar_file::$tfvar_file"
+          echo "::set-output name=account_id::$account_id"
           cat $tfvar_file
 
-      - name: Terraform init
-        run: terraform init
-
-      - name: Terraform plan
-        run: terraform plan -var-file=${{ steps.tfvar-file.outputs.tfvar_file }}
+      - name: Show Terraform Variables
+        run: |
+          echo "TFVar File: ${{ steps.set-variables.outputs.tfvar_file }}"
+          echo "Account ID: ${{ steps.set-variables.outputs.account_id }}"
