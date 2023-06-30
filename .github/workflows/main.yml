@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       region:
+        type: choice
         description: 'Select the region'
         required: true
-        default: 'us-east-1'
         options:
           - 'us-east-1'
           - 'eu-west-1'
