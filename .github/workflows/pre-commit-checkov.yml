@@ -16,8 +16,10 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: Install pre-commit hooks
-        run: pre-commit install
+      - name: Install pre-commit
+        run: |
+          pip install pre-commit
+          pre-commit install
 
       - name: Terraform fmt
         run: |
