@@ -12,14 +12,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
+        
       - name: Install pre-commit
         run: |
           pip install pre-commit
           pre-commit install
+      
+      - name: Read Terraform version from file
+        id: read-version
+        uses: actions/read-file@v2
+        with:
+          path: version
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ steps.read-version.outputs.content }}
 
       - name: Terraform fmt
         run: |
