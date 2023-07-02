@@ -20,14 +20,13 @@ jobs:
       
       - name: Read Terraform version from file
         id: read-version
-        uses: actions/read-file@v2
-        with:
-          path: version
+        run: |
+          echo "::set-output name=terraform_version::$(cat version)"
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: ${{ steps.read-version.outputs.content }}
+          terraform_version: ${{ steps.read-version.outputs.terraform_version }}
 
       - name: Terraform fmt
         run: |
