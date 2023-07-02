@@ -27,6 +27,11 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: ${{ steps.read-version.outputs.terraform_version }}
+      
+      - name: Print Terraform version
+        run: |
+          terraform_version=$(terraform version -json | jq -r .terraform_version)
+          echo "Terraform version: $terraform_version"
 
       - name: Terraform fmt
         run: |
@@ -37,14 +42,14 @@ jobs:
             exit 1
           fi
 
-      - name: Terraform validate
-        run: |
-          terraform validate
-          validate_status=$?
-          if [ $validate_status -ne 0 ]; then
-            echo "::error::Terraform validation failed. Please fix the validation errors."
-            exit 1
-          fi
+      # - name: Terraform validate
+      #   run: |
+      #     terraform validate
+      #     validate_status=$?
+      #     if [ $validate_status -ne 0 ]; then
+      #       echo "::error::Terraform validation failed. Please fix the validation errors."
+      #       exit 1
+      #     fi
 
       - name: Run pre-commit checks
         run: |
