@@ -1,0 +1,16 @@
+block-list-secret-scan: []
+download-external-modules: false
+evaluate-variables: true
+external-modules-download-path: .external_modules
+framework:
+- terraform
+- github_actions
+- secrets
+mask: []
+secrets-history-timeout: 12h
+secrets-scan-file-type: []
+skip-check:
+- CKV2_AWS_6   # Since April 2023, all new buckets have public access blocked
+- CKV2_AWS_62  # This doesn't seem useful
+- CKV_AWS_144  # Replicating every S3 bucket seems excesive
+summary-position: top

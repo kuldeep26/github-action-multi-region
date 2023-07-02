@@ -48,4 +48,8 @@ jobs:
       - name: Show Terraform Variables
         run: |
           echo "TFVar File: ${{ steps.set-variables.outputs.tfvar_file }}"
+<<<<<<< HEAD
           echo "Account ID: ${{ steps.set-variables.outputs.account_id }}"
+=======
+          echo "Account ID: ${{ steps.set-variables.outputs.account_id }}"
+>>>>>>> a131438001b50f7349376828734a680e3d38c033

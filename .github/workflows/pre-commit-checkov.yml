@@ -1,0 +1,73 @@
+name: CI checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pre-commit-checkov:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Install pre-commit
+        run: |
+          pip install pre-commit
+          pre-commit install
+      
+      - name: Read Terraform version from file
+        id: read-version
+        run: |
+          echo "::set-output name=terraform_version::$(cat version)"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ steps.read-version.outputs.terraform_version }}
+      
+      - name: Read Terraform version from file
+        run: echo "terraform_version=$(cat version)" >> $GITHUB_ENV
+
+      - name: Use Terraform version
+        run: |
+          terraform_version=$terraform_version
+          echo "Terraform version: $terraform_version"
+
+      - name: Terraform fmt
+        run: |
+          terraform fmt -check -diff
+          fmt_status=$?
+          if [ $fmt_status -ne 0 ]; then
+            echo "::error::Terraform formatting check failed. Please run 'terraform fmt' locally and commit the changes."
+            exit 1
+          fi
+
+      # - name: Terraform validate
+      #   run: |
+      #     terraform validate
+      #     validate_status=$?
+      #     if [ $validate_status -ne 0 ]; then
+      #       echo "::error::Terraform validation failed. Please fix the validation errors."
+      #       exit 1
+      #     fi
+
+      - name: Run pre-commit checks
+        run: |
+          pre-commit run --all-files
+          pre_commit_status=$?
+          if [ $pre_commit_status -ne 0 ]; then
+            echo "::error::Pre-commit checks failed. Please fix the identified issues."
+            exit 1
+          fi
+
+      - name: Run Checkov
+        run: |
+          checkov -d .
+          checkov_status=$?
+          if [ $checkov_status -ne 0 ]; then
+            echo "::error::Checkov failed. Please fix the identified security issues."
+            exit 1
+          fi
