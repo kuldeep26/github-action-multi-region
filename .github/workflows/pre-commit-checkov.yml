@@ -30,7 +30,7 @@ jobs:
       
       - name: Print Terraform version
         run: |
-          terraform_version=$(terraform version -json | jq -r .terraform_version)
+          terraform_version=$(terraform version | awk 'NR==1{print $2}')
           echo "Terraform version: $terraform_version"
 
       - name: Terraform fmt
